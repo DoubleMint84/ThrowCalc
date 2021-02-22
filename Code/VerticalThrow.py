@@ -52,7 +52,7 @@ class TabVertical(tk.Frame):
         self.frame_canvas.grid(row=0, column=1, rowspan=2)
         self.figure = Figure(figsize=(5,5), dpi=100)
         self.plot = self.figure.add_subplot(111)
-        self.plot.plot([0,2,3,4], [0, 'b', 7, 8])
+        #self.plot.plot([0,2,3,4], [0, 'b', 7, 8])
         self.canvas = FigureCanvasTkAgg(self.figure, self.frame_canvas)
         self.canvas.draw()
 
