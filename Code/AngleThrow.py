@@ -1,5 +1,6 @@
 # coding=UTF-8
 import tkinter as tk
+from math import sin, cos, tan, radians
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from tkinter import messagebox
@@ -28,26 +29,35 @@ class TabAngle(tk.Frame):
         self.ent_v0.grid(row=1, column=1)
         self.ent_alpha.grid(row=2, column=1)
         self.ent_g.grid(row=3, column=1)
-        tk.Button(self.frame_settings, text="Расчитать!", command=self.calc).grid(row=4, column=0)
-        tk.Button(self.frame_settings, text="Очистить поля", command=self.clear_entry).grid(row=4, column=1)
+        tk.Button(self.frame_settings, text="Расчитать!", command=self.calc).grid(row=5, column=0)
+        tk.Button(self.frame_settings, text="Очистить поля", command=self.clear_entry).grid(row=5, column=1)
 
         self.frame_result = tk.LabelFrame(self, text='Расчет', height=250, width=250)
         self.frame_result.grid(row=1, column=0)
         tk.Label(self.frame_result, text="Точка Y0").grid(row=0, column=0)
         tk.Label(self.frame_result, text="Начальная скорость V0").grid(row=1, column=0)
-        tk.Label(self.frame_result, text="Ускорение g").grid(row=2, column=0)
-        tk.Label(self.frame_result, text="Время полета").grid(row=3, column=0)
-        tk.Label(self.frame_result, text="Координата падения X").grid(row=4, column=0)
+        tk.Label(self.frame_result, text="Угол alpha").grid(row=2, column=0)
+        tk.Label(self.frame_result, text="Ускорение g").grid(row=3, column=0)
+        tk.Label(self.frame_result, text="Время подъема").grid(row=4, column=0)
+        tk.Label(self.frame_result, text="Максимальная высота подъема").grid(row=5, column=0)
+        tk.Label(self.frame_result, text="Время полета").grid(row=6, column=0)
+        tk.Label(self.frame_result, text="Координата падения X").grid(row=7, column=0)
         self.lbl_y0 = tk.Label(self.frame_result, text="-")
         self.lbl_v0 = tk.Label(self.frame_result, text="-")
+        self.lbl_alpha = tk.Label(self.frame_result, text="-")
         self.lbl_g = tk.Label(self.frame_result, text="-")
+        self.lbl_tpod = tk.Label(self.frame_result, text="-")
+        self.lbl_hmax = tk.Label(self.frame_result, text="-")
         self.lbl_tpol = tk.Label(self.frame_result, text="-")
         self.lbl_x = tk.Label(self.frame_result, text="-")
         self.lbl_y0.grid(row=0, column=1)
         self.lbl_v0.grid(row=1, column=1)
-        self.lbl_g.grid(row=2, column=1)
-        self.lbl_tpol.grid(row=3, column=1)
-        self.lbl_x.grid(row=4, column=1)
+        self.lbl_alpha.grid(row=2, column=1)
+        self.lbl_g.grid(row=3, column=1)
+        self.lbl_tpod.grid(row=4, column=1)
+        self.lbl_hmax.grid(row=5, column=1)
+        self.lbl_tpol.grid(row=6, column=1)
+        self.lbl_x.grid(row=7, column=1)
 
         self.frame_canvas = tk.LabelFrame(self, text='График')
         self.frame_canvas.grid(row=0, column=1, rowspan=2)
@@ -85,28 +95,43 @@ class TabAngle(tk.Frame):
         if v0 == 0:
             messagebox.showerror("ОШИБКА ВВОДА", "v0 не может быть равен нулю")
             return
+        str_alpha = str(self.ent_alpha.get())
+        try:
+            alpha = radians(abs(float(str_alpha)))
+        except ValueError:
+            messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле alpha")
+            return
+        if alpha < 0:
+            messagebox.showerror("ОШИБКА ВВОДА", "alpha не может быть меньше нуля")
+            return
         str_g = str(self.ent_g.get())
         try:
             g = float(str_g)
         except ValueError:
             messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле g")
             return
-        tpol = ((2 * y0) / g)**0.5
-        x = tpol * v0
+        tpod = (v0 * sin(alpha)) / g
+        hmax = y0 + ((v0 ** 2) * (sin(alpha)**2)) / (2 * g)
+        tpol = (v0 * sin(alpha) + (((v0 * sin(alpha))**2) + 2 * y0 * g)**0.5) / g
+        x = v0 * cos(alpha) * tpol
         self.lbl_y0['text'] = str(y0)
         self.lbl_v0['text'] = str(v0)
+        self.lbl_alpha['text'] = str(alpha)
         self.lbl_g['text'] = str(g)
+        self.lbl_tpod['text'] = str(tpod)
+        self.lbl_hmax['text'] = str(hmax)
         self.lbl_tpol['text'] = str(tpol)
         self.lbl_x['text'] = str(x)
         delta_x = x / 100
+        print(delta_x * 100)
         ls_x = []
         for i in range(0, 99):
             ls_x.append(i * delta_x)
-        ls_x.append(x)
+        #ls_x.append(x)
         ls_y = []
         for i in range(0, 99):
-            ls_y.append(y0 - (g * (ls_x[i]**2)) / (2 * (v0**2)))
-        ls_y.append(0)
+            ls_y.append(y0 + ls_x[i] * tan(alpha) - (g * (ls_x[i] ** 2)) / (2 * v0 * v0 * (cos(alpha) ** 2)))
+        #ls_y.append(0)
         self.plot.clear()
         self.plot.plot(ls_x, ls_y)
         self.plot.scatter(0, y0, color='orange', s=40, marker='o')
