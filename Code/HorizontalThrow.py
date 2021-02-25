@@ -1,6 +1,7 @@
 # coding=UTF-8
 import tkinter as tk
 import configparser as cfg
+from math import atan
 from tkinter import filedialog as fd
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -33,22 +34,34 @@ class TabHorizontal(tk.Frame):
 
         self.frame_result = tk.LabelFrame(self, text='Расчет', height=250, width=250)
         self.frame_result.grid(row=1, column=0)
-        tk.Label(self.frame_result, text="Точка Y0").grid(row=0, column=0)
-        tk.Label(self.frame_result, text="Начальная скорость V0").grid(row=1, column=0)
-        tk.Label(self.frame_result, text="Ускорение g").grid(row=2, column=0)
-        tk.Label(self.frame_result, text="Время полета").grid(row=3, column=0)
-        tk.Label(self.frame_result, text="Координата падения X").grid(row=4, column=0)
+        tk.Label(self.frame_result, text="Точка Y0").grid(row=0, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Начальная скорость V0").grid(row=1, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Ускорение g").grid(row=2, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Время полета").grid(row=3, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Координата падения X").grid(row=4, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Конечная скорость по X").grid(row=5, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Конечная скорость по Y").grid(row=6, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Конечная скорость").grid(row=7, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Угол beta").grid(row=8, column=0, sticky=tk.W)
         self.lbl_y0 = tk.Label(self.frame_result, text="-")
         self.lbl_v0 = tk.Label(self.frame_result, text="-")
         self.lbl_g = tk.Label(self.frame_result, text="-")
         self.lbl_tpol = tk.Label(self.frame_result, text="-")
         self.lbl_x = tk.Label(self.frame_result, text="-")
+        self.lbl_vx = tk.Label(self.frame_result, text="-")
+        self.lbl_vy = tk.Label(self.frame_result, text="-")
+        self.lbl_vKon = tk.Label(self.frame_result, text="-")
+        self.lbl_beta = tk.Label(self.frame_result, text="-")
         self.lbl_y0.grid(row=0, column=1)
         self.lbl_v0.grid(row=1, column=1)
         self.lbl_g.grid(row=2, column=1)
         self.lbl_tpol.grid(row=3, column=1)
         self.lbl_x.grid(row=4, column=1)
-        tk.Button(self.frame_result, text="Сохранить результаты", command=self.save_file).grid(row=5, column=0, columnspan=2)
+        self.lbl_vx.grid(row=5, column=1)
+        self.lbl_vy.grid(row=6, column=1)
+        self.lbl_vKon.grid(row=7, column=1)
+        self.lbl_beta.grid(row=8, column=1)
+        tk.Button(self.frame_result, text="Сохранить результаты", command=self.save_file).grid(row=9, column=0, columnspan=2)
 
         self.frame_canvas = tk.LabelFrame(self, text='График')
         self.frame_canvas.grid(row=0, column=1, rowspan=2)
@@ -97,6 +110,10 @@ class TabHorizontal(tk.Frame):
             'g': self.lbl_g['text'],
             'L': self.lbl_x['text'],
             'tpol': self.lbl_tpol['text'],
+            'vx': self.lbl_vx ['text'],
+            'vy': self.lbl_vy['text'],
+            'vkon': self.lbl_vKon['text'],
+            'beta': self.lbl_beta['text'],
         }
         with open(file_name + ".ini", 'w') as configfile:
             config.write(configfile)
@@ -107,6 +124,9 @@ class TabHorizontal(tk.Frame):
             y0 = float(str_y0)
         except ValueError:
             messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле y0")
+            return
+        if y0 < 0:
+            messagebox.showerror("ОШИБКА ВВОДА", "x0 должно быть больше 0")
             return
         str_v0 = str(self.ent_v0.get())
         try:
@@ -125,11 +145,19 @@ class TabHorizontal(tk.Frame):
             return
         tpol = ((2 * y0) / g)**0.5
         x = tpol * v0
+        vKon_x = v0
+        vKon_y = tpol * g
+        vKon = ((vKon_x**2) + (vKon_y**2))**0.5
+        beta = atan(vKon_y / vKon_x)
         self.lbl_y0['text'] = str(y0)
         self.lbl_v0['text'] = str(v0)
         self.lbl_g['text'] = str(g)
         self.lbl_tpol['text'] = str(tpol)
         self.lbl_x['text'] = str(x)
+        self.lbl_vx['text'] = str(vKon_x)
+        self.lbl_vy['text'] = str(vKon_y)
+        self.lbl_vKon['text'] = str(vKon)
+        self.lbl_beta['text'] = str(beta)
         delta_x = x / 100
         ls_x = []
         for i in range(0, 99):

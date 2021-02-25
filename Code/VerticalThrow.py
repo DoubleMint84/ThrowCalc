@@ -33,12 +33,12 @@ class TabVertical(tk.Frame):
 
         self.frame_result = tk.LabelFrame(self, text='Расчет', height=250, width=250)
         self.frame_result.grid(row=1, column=0)
-        tk.Label(self.frame_result, text="Точка X0").grid(row=0, column=0)
-        tk.Label(self.frame_result, text="Начальная скорость V0").grid(row=1, column=0)
-        tk.Label(self.frame_result, text="Ускорение g").grid(row=2, column=0)
-        tk.Label(self.frame_result, text="Время подъема").grid(row=3, column=0)
-        tk.Label(self.frame_result, text="Время полета").grid(row=4, column=0)
-        tk.Label(self.frame_result, text="Максимальная высота").grid(row=5, column=0)
+        tk.Label(self.frame_result, text="Точка X0").grid(row=0, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Начальная скорость V0").grid(row=1, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Ускорение g").grid(row=2, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Время подъема").grid(row=3, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Время полета").grid(row=4, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Максимальная высота").grid(row=5, column=0, sticky=tk.W)
         self.lbl_x0 = tk.Label(self.frame_result, text="-")
         self.lbl_v0 = tk.Label(self.frame_result, text="-")
         self.lbl_g = tk.Label(self.frame_result, text="-")
@@ -112,6 +112,9 @@ class TabVertical(tk.Frame):
             x0 = float(str_x0)
         except ValueError:
             messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле x0")
+            return
+        if x0 < 0:
+            messagebox.showerror("ОШИБКА ВВОДА", "x0 должно быть больше 0")
             return
         str_v0 = str(self.ent_v0.get())
         try:
