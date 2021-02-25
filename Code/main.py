@@ -39,6 +39,6 @@ if __name__ == '__main__':
     root = Tk()
     root.title('version')
     ex = MainWindow(root)
-    root.geometry("800x600")
+    root.geometry("830x600")
     root.resizable(width=False, height=False)
     root.mainloop()

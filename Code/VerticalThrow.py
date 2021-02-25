@@ -1,5 +1,7 @@
 # coding=UTF-8
 import tkinter as tk
+import configparser as cfg
+from tkinter import filedialog as fd
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from tkinter import messagebox
@@ -25,8 +27,9 @@ class TabVertical(tk.Frame):
         self.ent_x0.grid(row = 0, column = 1)
         self.ent_v0.grid(row=1, column=1)
         self.ent_g.grid(row=2, column=1)
-        tk.Button(self.frame_settings, text="Расчитать!", command=self.calc).grid(row=4, column=0)
-        tk.Button(self.frame_settings, text="Очистить поля", command=self.clear_entry).grid(row=4, column=1)
+        tk.Button(self.frame_settings, text="Считать из файла", command=self.read_file).grid(row=5, column=0, columnspan=2)
+        tk.Button(self.frame_settings, text="Расчитать!", command=self.calc).grid(row=6, column=0)
+        tk.Button(self.frame_settings, text="Очистить поля", command=self.clear_entry).grid(row=6, column=1)
 
         self.frame_result = tk.LabelFrame(self, text='Расчет', height=250, width=250)
         self.frame_result.grid(row=1, column=0)
@@ -48,6 +51,8 @@ class TabVertical(tk.Frame):
         self.lbl_tpod.grid(row=3, column=1)
         self.lbl_tpol.grid(row=4, column=1)
         self.lbl_hmax.grid(row=5, column=1)
+        tk.Button(self.frame_result, text="Сохранить результаты", command=self.save_file).grid(row=6, column=0, columnspan=2)
+
         self.frame_canvas = tk.LabelFrame(self, text='График')
         self.frame_canvas.grid(row=0, column=1, rowspan=2)
         self.figure = Figure(figsize=(5,5), dpi=100)
@@ -66,6 +71,39 @@ class TabVertical(tk.Frame):
         self.ent_v0.delete(0, tk.END)
         self.ent_x0.delete(0, tk.END)
         self.ent_g.delete(0, tk.END)
+
+    def save_file(self):
+        file_name = fd.asksaveasfilename(filetypes=[("Ini files", "*.ini")])
+        config = cfg.ConfigParser()
+        print(file_name)
+        config['VERTICAL.RESULT'] = {
+            'x0': self.lbl_x0['text'],
+            'speed': self.lbl_v0['text'],
+            'g': self.lbl_g['text'],
+            'tpod': self.lbl_tpod['text'],
+            'hmax': self.lbl_hmax['text'],
+            'tpol': self.lbl_tpol['text'],
+        }
+        with open(file_name + ".ini", 'w') as configfile:
+            config.write(configfile)
+
+    def read_file(self):
+        file_name = fd.askopenfilename(filetypes=[("Ini files", ".ini")])
+        config = cfg.ConfigParser()
+        config.read(file_name)
+        if 'VERTICAL' not in config:
+            messagebox.showerror("ОШИБКА ВВОДА", "Блок VERTICAL отсутствует в файле")
+            return
+        self.clear_entry()
+        df = config['VERTICAL']
+        if 'speed' in df:
+            print(df['speed'])
+            self.ent_v0.insert(0, df['speed'])
+        if 'x0' in df:
+            self.ent_x0.insert(0, df['x0'])
+        if 'g' in df:
+            self.ent_g.insert(0, df['g'])
+        print(file_name)
 
 
     def calc(self):

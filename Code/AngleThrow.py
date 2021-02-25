@@ -1,5 +1,7 @@
 # coding=UTF-8
 import tkinter as tk
+import configparser as cfg
+from tkinter import filedialog as fd
 from math import sin, cos, tan, radians
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -29,8 +31,9 @@ class TabAngle(tk.Frame):
         self.ent_v0.grid(row=1, column=1)
         self.ent_alpha.grid(row=2, column=1)
         self.ent_g.grid(row=3, column=1)
-        tk.Button(self.frame_settings, text="Расчитать!", command=self.calc).grid(row=5, column=0)
-        tk.Button(self.frame_settings, text="Очистить поля", command=self.clear_entry).grid(row=5, column=1)
+        tk.Button(self.frame_settings, text="Считать из файла", command=self.read_file).grid(row=5, column=0, columnspan=2)
+        tk.Button(self.frame_settings, text="Расчитать!", command=self.calc).grid(row=6, column=0)
+        tk.Button(self.frame_settings, text="Очистить поля", command=self.clear_entry).grid(row=6, column=1)
 
         self.frame_result = tk.LabelFrame(self, text='Расчет', height=250, width=250)
         self.frame_result.grid(row=1, column=0)
@@ -58,6 +61,7 @@ class TabAngle(tk.Frame):
         self.lbl_hmax.grid(row=5, column=1)
         self.lbl_tpol.grid(row=6, column=1)
         self.lbl_x.grid(row=7, column=1)
+        tk.Button(self.frame_result, text="Сохранить результаты", command=self.save_file).grid(row=8, column=0, columnspan=2)
 
         self.frame_canvas = tk.LabelFrame(self, text='График')
         self.frame_canvas.grid(row=0, column=1, rowspan=2)
@@ -76,8 +80,45 @@ class TabAngle(tk.Frame):
     def clear_entry(self):
         self.ent_v0.delete(0, tk.END)
         self.ent_y0.delete(0, tk.END)
+        self.ent_alpha.delete(0, tk.END)
         self.ent_g.delete(0, tk.END)
 
+    def read_file(self):
+        file_name = fd.askopenfilename(filetypes=[("Ini files", ".ini")])
+        config = cfg.ConfigParser()
+        config.read(file_name)
+        if 'ANGLE' not in config:
+            messagebox.showerror("ОШИБКА ВВОДА", "Блок ANGLE отсутствует в файле")
+            return
+        self.clear_entry()
+        df = config['ANGLE']
+        if 'speed' in df:
+            print(df['speed'])
+            self.ent_v0.insert(0, df['speed'])
+        if 'y0' in df:
+            self.ent_y0.insert(0, df['y0'])
+        if 'alpha' in df:
+            self.ent_alpha.insert(0, df['alpha'])
+        if 'g' in df:
+            self.ent_g.insert(0, df['g'])
+        print(file_name)
+
+    def save_file(self):
+        file_name = fd.asksaveasfilename(filetypes=[("Ini files", "*.ini")])
+        config = cfg.ConfigParser()
+        print(file_name)
+        config['ANGLE.RESULT'] = {
+            'y0': self.lbl_y0['text'],
+            'speed': self.lbl_v0['text'],
+            'alpha': self.lbl_alpha['text'],
+            'g': self.lbl_g['text'],
+            'tpod': self.lbl_tpod['text'],
+            'hmax': self.lbl_hmax['text'],
+            'tpol': self.lbl_tpol['text'],
+            'L': self.lbl_x['text']
+        }
+        with open(file_name + ".ini", 'w') as configfile:
+            config.write(configfile)
 
     def calc(self):
         str_y0 = str(self.ent_y0.get())
@@ -127,11 +168,11 @@ class TabAngle(tk.Frame):
         ls_x = []
         for i in range(0, 99):
             ls_x.append(i * delta_x)
-        #ls_x.append(x)
+        ls_x.append(x)
         ls_y = []
         for i in range(0, 99):
             ls_y.append(y0 + ls_x[i] * tan(alpha) - (g * (ls_x[i] ** 2)) / (2 * v0 * v0 * (cos(alpha) ** 2)))
-        #ls_y.append(0)
+        ls_y.append(0)
         self.plot.clear()
         self.plot.plot(ls_x, ls_y)
         self.plot.scatter(0, y0, color='orange', s=40, marker='o')
