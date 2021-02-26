@@ -85,7 +85,7 @@ class TabVertical(tk.Frame):
         file_name = fd.asksaveasfilename(filetypes=[("Txt files", "*.txt")])
         config = cfg.ConfigParser()
         print(file_name)
-        config['VERTICAL.RESULT'] = {
+        config['VERTICAL'] = {
             'x0': self.lbl_x0['text'],
             'v0': self.lbl_v0['text'],
             'g': self.lbl_g['text'],

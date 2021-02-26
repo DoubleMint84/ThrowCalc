@@ -113,7 +113,7 @@ class TabHorizontal(tk.Frame):
         file_name = fd.asksaveasfilename(filetypes=[("Txt files", "*.txt")])
         config = cfg.ConfigParser()
         print(file_name)
-        config['HORIZONTAL.RESULT'] = {
+        config['HORIZONTAL'] = {
             'y0': self.lbl_y0['text'],
             'v0': self.lbl_v0['text'],
             'g': self.lbl_g['text'],

@@ -106,7 +106,7 @@ class TabAngle(tk.Frame):
         file_name = fd.asksaveasfilename(filetypes=[("Txt files", "*.txt")])
         config = cfg.ConfigParser()
         print(file_name)
-        config['ANGLE.RESULT'] = {
+        config['ANGLE'] = {
             'y0': self.lbl_y0['text'],
             'v0': self.lbl_v0['text'],
             'alpha': self.lbl_alpha['text'],
