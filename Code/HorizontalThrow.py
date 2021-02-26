@@ -18,19 +18,25 @@ class TabHorizontal(tk.Frame):
     def init_ui(self):
         self.frame_settings = tk.LabelFrame(self, text='Настройки', height=250, width=250)
         self.frame_settings.grid(row=0, column=0)
-        tk.Label(self.frame_settings, text="Точка Y0").grid(row=0,column=0)
-        tk.Label(self.frame_settings, text="Начальная скорость V0").grid(row=1, column=0)
-        tk.Label(self.frame_settings, text="Ускорение g").grid(row=2, column=0)
-        tk.Label(self.frame_settings, text="Желтая точка на графике - Y0").grid(row=3, column=0, columnspan=2)
+        tk.Label(self.frame_settings, text="Точка Y0").grid(row=0,column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Начальная скорость V0").grid(row=1, column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Время полета").grid(row=2, column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Точка падения X").grid(row=3, column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Ускорение g").grid(row=4, column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Желтая точка на графике - Y0").grid(row=5, column=0, columnspan=2)
         self.ent_y0 = tk.Entry(self.frame_settings)
         self.ent_v0 = tk.Entry(self.frame_settings)
+        self.ent_tpol = tk.Entry(self.frame_settings)
+        self.ent_x = tk.Entry(self.frame_settings)
         self.ent_g = tk.Entry(self.frame_settings)
         self.ent_y0.grid(row = 0, column = 1)
         self.ent_v0.grid(row=1, column=1)
-        self.ent_g.grid(row=2, column=1)
-        tk.Button(self.frame_settings, text="Считать из файла", command=self.read_file).grid(row=4, column=0, columnspan=2)
-        tk.Button(self.frame_settings, text="Расчитать!", command=self.calc).grid(row=5, column=0)
-        tk.Button(self.frame_settings, text="Очистить поля", command=self.clear_entry).grid(row=5, column=1)
+        self.ent_tpol.grid(row=2, column=1)
+        self.ent_x.grid(row=3, column=1)
+        self.ent_g.grid(row=4, column=1)
+        tk.Button(self.frame_settings, text="Считать из файла", command=self.read_file).grid(row=6, column=0, columnspan=2)
+        tk.Button(self.frame_settings, text="Расчитать!", command=self.calc).grid(row=7, column=0)
+        tk.Button(self.frame_settings, text="Очистить поля", command=self.clear_entry).grid(row=7, column=1)
 
         self.frame_result = tk.LabelFrame(self, text='Расчет', height=250, width=250)
         self.frame_result.grid(row=1, column=0)
@@ -83,7 +89,7 @@ class TabHorizontal(tk.Frame):
         self.ent_g.delete(0, tk.END)
 
     def read_file(self):
-        file_name = fd.askopenfilename(filetypes=[("Ini files", ".ini")])
+        file_name = fd.askopenfilename(filetypes=[("Txt files", ".txt")])
         config = cfg.ConfigParser()
         config.read(file_name)
         if 'HORIZONTAL' not in config:
@@ -91,22 +97,25 @@ class TabHorizontal(tk.Frame):
             return
         self.clear_entry()
         df = config['HORIZONTAL']
-        if 'speed' in df:
-            print(df['speed'])
-            self.ent_v0.insert(0, df['speed'])
+        if 'v0' in df:
+            self.ent_v0.insert(0, df['v0'])
         if 'y0' in df:
             self.ent_y0.insert(0, df['y0'])
+        if 'tpol' in df:
+            self.ent_tpol.insert(0, df['tpol'])
+        if 'x' in df:
+            self.ent_x.insert(0, df['x'])
         if 'g' in df:
             self.ent_g.insert(0, df['g'])
         print(file_name)
 
     def save_file(self):
-        file_name = fd.asksaveasfilename(filetypes=[("Ini files", "*.ini")])
+        file_name = fd.asksaveasfilename(filetypes=[("Txt files", "*.txt")])
         config = cfg.ConfigParser()
         print(file_name)
         config['HORIZONTAL.RESULT'] = {
             'y0': self.lbl_y0['text'],
-            'speed': self.lbl_v0['text'],
+            'v0': self.lbl_v0['text'],
             'g': self.lbl_g['text'],
             'L': self.lbl_x['text'],
             'tpol': self.lbl_tpol['text'],
@@ -115,36 +124,82 @@ class TabHorizontal(tk.Frame):
             'vkon': self.lbl_vKon['text'],
             'beta': self.lbl_beta['text'],
         }
-        with open(file_name + ".ini", 'w') as configfile:
+        with open(file_name + ".txt", 'w') as configfile:
             config.write(configfile)
 
     def calc(self):
+        defined = set()
+
         str_y0 = str(self.ent_y0.get())
-        try:
-            y0 = float(str_y0)
-        except ValueError:
-            messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле y0")
-            return
-        if y0 < 0:
-            messagebox.showerror("ОШИБКА ВВОДА", "x0 должно быть больше 0")
-            return
+        if str_y0 != "":
+            try:
+                y0 = float(str_y0)
+            except ValueError:
+                messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле y0")
+                return
+            if y0 <= 0:
+                messagebox.showerror("ОШИБКА ВВОДА", "x0 должно быть больше 0")
+                return
+            defined.add('y0')
+
         str_v0 = str(self.ent_v0.get())
-        try:
-            v0 = abs(float(str_v0))
-        except ValueError:
-            messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле v0")
-            return
-        if v0 == 0:
-            messagebox.showerror("ОШИБКА ВВОДА", "v0 не может быть равен нулю")
-            return
+        if str_v0 != "":
+            try:
+                v0 = abs(float(str_v0))
+            except ValueError:
+                messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле v0")
+                return
+            defined.add('v0')
+
+        str_tpol = str(self.ent_tpol.get())
+        if str_tpol != "":
+            try:
+                tpol = abs(float(str_tpol))
+            except ValueError:
+                messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле v0")
+                return
+            defined.add('tpol')
+
+        str_x = str(self.ent_x.get())
+        if str_x != "":
+            try:
+                x = float(str_x)
+            except ValueError:
+                messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле v0")
+                return
+            defined.add('x')
+
         str_g = str(self.ent_g.get())
         try:
-            g = float(str_g)
+            g = abs(float(str_g))
         except ValueError:
             messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле g")
             return
-        tpol = ((2 * y0) / g)**0.5
-        x = tpol * v0
+
+        if len(defined) < 2:
+            messagebox.showerror("ОШИБКА РАСЧЕТА", "Недостаточно данных для вычислений")
+            return
+
+        if 'y0' in defined and 'v0' in defined:
+            tpol = ((2 * y0) / g)**0.5
+            x = tpol * v0
+        elif 'y0' in defined and 'x' in defined:
+            tpol = ((2 * y0) / g)**0.5
+            v0 = x / tpol
+        elif 'v0' in defined and 'tpol' in defined:
+            x = v0 * tpol
+            y0 = (g * (tpol**2)) / 2
+        elif 'v0' in defined and 'x' in defined:
+            tpol = x / v0
+            y0 = (g * (tpol**2)) / 2
+        elif 'tpol' in defined and 'x' in defined:
+            v0 = x / tpol
+            y0 = (g * (tpol**2)) / 2
+        elif 'y0' in defined and 'tpol' in defined:
+            messagebox.showerror("ОШИБКА РАСЧЕТА", "Недостаточно данных для вычислений")
+            return
+
+
         vKon_x = v0
         vKon_y = tpol * g
         vKon = ((vKon_x**2) + (vKon_y**2))**0.5

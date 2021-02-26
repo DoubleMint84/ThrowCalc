@@ -18,10 +18,10 @@ class TabAngle(tk.Frame):
     def init_ui(self):
         self.frame_settings = tk.LabelFrame(self, text='Настройки', height=250, width=250)
         self.frame_settings.grid(row=0, column=0)
-        tk.Label(self.frame_settings, text="Точка Y0").grid(row=0,column=0)
-        tk.Label(self.frame_settings, text="Начальная скорость V0").grid(row=1, column=0)
-        tk.Label(self.frame_settings, text="Угол alpha").grid(row=2, column=0)
-        tk.Label(self.frame_settings, text="Ускорение g").grid(row=3, column=0)
+        tk.Label(self.frame_settings, text="Точка Y0").grid(row=0,column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Начальная скорость V0").grid(row=1, column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Угол alpha").grid(row=2, column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Ускорение g").grid(row=3, column=0, sticky=tk.W)
         tk.Label(self.frame_settings, text="Желтая точка на графике - Y0").grid(row=4, column=0, columnspan=2)
         self.ent_y0 = tk.Entry(self.frame_settings)
         self.ent_v0 = tk.Entry(self.frame_settings)
@@ -84,7 +84,7 @@ class TabAngle(tk.Frame):
         self.ent_g.delete(0, tk.END)
 
     def read_file(self):
-        file_name = fd.askopenfilename(filetypes=[("Ini files", ".ini")])
+        file_name = fd.askopenfilename(filetypes=[("Txt files", ".txt")])
         config = cfg.ConfigParser()
         config.read(file_name)
         if 'ANGLE' not in config:
@@ -92,9 +92,8 @@ class TabAngle(tk.Frame):
             return
         self.clear_entry()
         df = config['ANGLE']
-        if 'speed' in df:
-            print(df['speed'])
-            self.ent_v0.insert(0, df['speed'])
+        if 'v0' in df:
+            self.ent_v0.insert(0, df['v0'])
         if 'y0' in df:
             self.ent_y0.insert(0, df['y0'])
         if 'alpha' in df:
@@ -104,12 +103,12 @@ class TabAngle(tk.Frame):
         print(file_name)
 
     def save_file(self):
-        file_name = fd.asksaveasfilename(filetypes=[("Ini files", "*.ini")])
+        file_name = fd.asksaveasfilename(filetypes=[("Txt files", "*.txt")])
         config = cfg.ConfigParser()
         print(file_name)
         config['ANGLE.RESULT'] = {
             'y0': self.lbl_y0['text'],
-            'speed': self.lbl_v0['text'],
+            'v0': self.lbl_v0['text'],
             'alpha': self.lbl_alpha['text'],
             'g': self.lbl_g['text'],
             'tpod': self.lbl_tpod['text'],
@@ -117,7 +116,7 @@ class TabAngle(tk.Frame):
             'tpol': self.lbl_tpol['text'],
             'L': self.lbl_x['text']
         }
-        with open(file_name + ".ini", 'w') as configfile:
+        with open(file_name + ".txt", 'w') as configfile:
             config.write(configfile)
 
     def calc(self):

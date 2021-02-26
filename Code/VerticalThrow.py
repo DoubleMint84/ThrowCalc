@@ -17,19 +17,28 @@ class TabVertical(tk.Frame):
     def init_ui(self):
         self.frame_settings = tk.LabelFrame(self, text='Настройки', height=250, width=250)
         self.frame_settings.grid(row=0, column=0)
-        tk.Label(self.frame_settings, text="Точка X0").grid(row=0,column=0)
-        tk.Label(self.frame_settings, text="Начальная скорость V0").grid(row=1, column=0)
-        tk.Label(self.frame_settings, text="Ускорение g").grid(row=2, column=0)
-        tk.Label(self.frame_settings, text="Желтая точка на графике - x0").grid(row=3, column=0, columnspan=2)
+        tk.Label(self.frame_settings, text="Точка X0").grid(row=0,column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Начальная скорость V0").grid(row=1, column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Время подъема").grid(row=2, column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Время полета").grid(row=3, column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Максимальная высота").grid(row=4, column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Ускорение g").grid(row=5, column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Желтая точка на графике - x0").grid(row=6, column=0, columnspan=2)
         self.ent_x0 = tk.Entry(self.frame_settings)
         self.ent_v0 = tk.Entry(self.frame_settings)
+        self.ent_tpod = tk.Entry(self.frame_settings)
+        self.ent_tpol = tk.Entry(self.frame_settings)
+        self.ent_hmax = tk.Entry(self.frame_settings)
         self.ent_g = tk.Entry(self.frame_settings)
         self.ent_x0.grid(row = 0, column = 1)
         self.ent_v0.grid(row=1, column=1)
-        self.ent_g.grid(row=2, column=1)
-        tk.Button(self.frame_settings, text="Считать из файла", command=self.read_file).grid(row=5, column=0, columnspan=2)
-        tk.Button(self.frame_settings, text="Расчитать!", command=self.calc).grid(row=6, column=0)
-        tk.Button(self.frame_settings, text="Очистить поля", command=self.clear_entry).grid(row=6, column=1)
+        self.ent_tpod.grid(row=2, column=1)
+        self.ent_tpol.grid(row=3, column=1)
+        self.ent_hmax.grid(row=4, column=1)
+        self.ent_g.grid(row=5, column=1)
+        tk.Button(self.frame_settings, text="Считать из файла", command=self.read_file).grid(row=7, column=0, columnspan=2)
+        tk.Button(self.frame_settings, text="Расчитать!", command=self.calc).grid(row=8, column=0)
+        tk.Button(self.frame_settings, text="Очистить поля", command=self.clear_entry).grid(row=8, column=1)
 
         self.frame_result = tk.LabelFrame(self, text='Расчет', height=250, width=250)
         self.frame_result.grid(row=1, column=0)
@@ -73,22 +82,22 @@ class TabVertical(tk.Frame):
         self.ent_g.delete(0, tk.END)
 
     def save_file(self):
-        file_name = fd.asksaveasfilename(filetypes=[("Ini files", "*.ini")])
+        file_name = fd.asksaveasfilename(filetypes=[("Txt files", "*.txt")])
         config = cfg.ConfigParser()
         print(file_name)
         config['VERTICAL.RESULT'] = {
             'x0': self.lbl_x0['text'],
-            'speed': self.lbl_v0['text'],
+            'v0': self.lbl_v0['text'],
             'g': self.lbl_g['text'],
             'tpod': self.lbl_tpod['text'],
             'hmax': self.lbl_hmax['text'],
             'tpol': self.lbl_tpol['text'],
         }
-        with open(file_name + ".ini", 'w') as configfile:
+        with open(file_name + ".txt", 'w') as configfile:
             config.write(configfile)
 
     def read_file(self):
-        file_name = fd.askopenfilename(filetypes=[("Ini files", ".ini")])
+        file_name = fd.askopenfilename(filetypes=[("Txt files", ".txt")])
         config = cfg.ConfigParser()
         config.read(file_name)
         if 'VERTICAL' not in config:
@@ -96,49 +105,158 @@ class TabVertical(tk.Frame):
             return
         self.clear_entry()
         df = config['VERTICAL']
-        if 'speed' in df:
-            print(df['speed'])
-            self.ent_v0.insert(0, df['speed'])
+        if 'v0' in df:
+            self.ent_v0.insert(0, df['v0'])
         if 'x0' in df:
             self.ent_x0.insert(0, df['x0'])
         if 'g' in df:
             self.ent_g.insert(0, df['g'])
+        if 'tpol' in df:
+            self.ent_tpol.insert(0, df['tpol'])
+        if 'tpod' in df:
+            self.ent_tpod.insert(0, df['tpod'])
         print(file_name)
 
 
     def calc(self):
+        defined = set()
+
         str_x0 = str(self.ent_x0.get())
-        try:
-            x0 = float(str_x0)
-        except ValueError:
-            messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле x0")
-            return
-        if x0 < 0:
-            messagebox.showerror("ОШИБКА ВВОДА", "x0 должно быть больше 0")
-            return
+        if str_x0 != "":
+            try:
+                x0 = float(str_x0)
+            except ValueError:
+                messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле x0")
+                return
+            if x0 < 0:
+                messagebox.showerror("ОШИБКА ВВОДА", "x0 должно быть больше 0")
+                return
+            defined.add('x0')
+
         str_v0 = str(self.ent_v0.get())
-        try:
-            v0 = float(str_v0)
-        except ValueError:
-            messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле v0")
-            return
+        if str_v0 != "":
+            try:
+                v0 = float(str_v0)
+            except ValueError:
+                messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле v0")
+                return
+            defined.add('v0')
+
+        str_tpod = str(self.ent_tpod.get())
+        if str_tpod != "":
+            try:
+                tpod = float(str_tpod)
+            except ValueError:
+                messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле tpod")
+                return
+            if tpod < 0:
+                messagebox.showerror("ОШИБКА ВВОДА", "Время подъема не может быть отрицательным")
+                return
+            defined.add('tpod')
+
+        str_tpol = str(self.ent_tpol.get())
+        if str_tpol != "":
+            try:
+                tpol = float(str_tpol)
+            except ValueError:
+                messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле tpol")
+                return
+            if tpol <= 0:
+                messagebox.showerror("ОШИБКА ВВОДА", "Время полета может быть только больше нуля")
+                return
+            defined.add('tpol')
+
+        str_hmax = str(self.ent_hmax.get())
+        if str_hmax != "":
+            try:
+                hmax = float(str_hmax)
+            except ValueError:
+                messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле hmax")
+                return
+            if hmax < 0:
+                messagebox.showerror("ОШИБКА ВВОДА", "Максимальная высота не может быть отрицательной")
+                return
+            defined.add('hmax')
+
         str_g = str(self.ent_g.get())
         try:
-            g = float(str_g)
+            g = abs(float(str_g))
         except ValueError:
             messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле g")
             return
-        if v0 <= 0:
-            hmax = x0
-            self.lbl_tpod['text'] = str(0)
-        else:
-            hmax = x0 + (v0 ** 2) / (2 * g)
-            self.lbl_tpod['text'] = str(v0 / g)
+
+        if len(defined) < 2:
+            messagebox.showerror("ОШИБКА РАСЧЕТА", "Недостаточно данных для расчета")
+            return
+
+        if 'x0' in defined and 'v0' in defined:
+            if v0 <= 0:
+                hmax = x0
+                tpod = 0
+            else:
+                hmax = x0 + (v0 ** 2) / (2 * g)
+                tpod = v0 / g
+        elif 'x0' in defined and 'tpod' in defined:
+            if tpod > 0:
+                v0 = g * tpod
+                hmax = x0 + v0 * tpod - (g * (tpod**2)) / 2
+                tpol = (v0 + (v0 ** 2 + 2 * x0 * g)**0.5) / g
+            else:
+                messagebox.showerror("ОШИБКА РАСЧЕТА", "Недостаточно данных для расчета")
+                return
+        elif 'x0' in defined and 'tpol' in defined:
+            v0 = ((g * tpol) / 2) - (x0 / tpol)
+            if v0 <= 0:
+                tpod = 0
+                hmax = x0
+            else:
+                tpod = v0 / g
+                hmax = x0 + v0 * tpod - (g * (tpod**2)) / 2
+        elif 'v0' in defined and 'tpol' in defined:
+            x0 = (g * (tpol**2)) / 2 - v0 * tpol
+            if v0 <= 0:
+                tpod = 0
+                hmax = x0
+            else:
+                tpod = v0 / g
+                hmax = x0 + v0 * tpod - (g * (tpod**2)) / 2
+        elif 'v0' in defined and 'hmax' in defined:
+            if v0 <= 0:
+                x0 = hmax
+                tpod = 0
+                tpol = (v0 + (v0 ** 2 + 2 * x0 * g)**0.5) / g
+            else:
+                tpod = v0 / g
+                x0 = hmax + (g * (tpod**2)) / 2 - v0 * tpod
+                tpol = (v0 + (v0 ** 2 + 2 * x0 * g)**0.5) / g
+        elif 'tpod' in defined and 'hmax' in defined:
+            if tpod > 0:
+                v0 = g * tpod
+                x0 = hmax + (g * (tpod**2)) / 2 - v0 * tpod
+                tpol = (v0 + (v0 ** 2 + 2 * x0 * g) ** 0.5) / g
+            else:
+                messagebox.showerror("ОШИБКА РАСЧЕТА", "Недостаточно данных для расчета")
+                return
+        elif 'tpol' in defined and 'tpod' in defined:
+            messagebox.showerror("ОШИБКА РАСЧЕТА", "Недостаточно данных для расчета")
+            return
+        elif 'tpol' in defined and 'hmax' in defined:
+            messagebox.showerror("ОШИБКА РАСЧЕТА", "Недостаточно данных для расчета")
+            return
+
+        elif 'x0' in defined and 'hmax' in defined:
+            messagebox.showerror("ОШИБКА РАСЧЕТА", "Недостаточно данных для расчета")
+            return
+        elif 'v0' in defined and 'tpod' in defined:
+            messagebox.showerror("ОШИБКА РАСЧЕТА", "Недостаточно данных для расчета")
+            return
+
         self.lbl_x0['text'] = str(x0)
         self.lbl_v0['text'] = str(v0)
         self.lbl_g['text'] = str(g)
-        self.lbl_tpol['text'] = str((v0 + (v0 ** 2 + 2 * x0 * g)**0.5) / g)
+        self.lbl_tpol['text'] = str(tpol)
         self.lbl_hmax['text'] = str(hmax)
+        self.lbl_tpod['text'] = str(tpod)
         self.plot.clear()
         self.plot.plot([0, 0], [0, hmax])
         self.plot.scatter(0, x0, color='orange', s=40, marker='o')
