@@ -1,11 +1,13 @@
 # coding=UTF-8
 import tkinter as tk
 import configparser as cfg
+import webbrowser
 from tkinter import filedialog as fd
-from math import sin, cos, tan, radians
+from math import sin, cos, tan, atan, radians, degrees
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from tkinter import messagebox
+
 
 class TabAngle(tk.Frame):
     def __init__(self, parent):
@@ -18,7 +20,7 @@ class TabAngle(tk.Frame):
     def init_ui(self):
         self.frame_settings = tk.LabelFrame(self, text='Настройки', height=250, width=250)
         self.frame_settings.grid(row=0, column=0)
-        tk.Label(self.frame_settings, text="Точка Y0").grid(row=0,column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Точка Y0").grid(row=0, column=0, sticky=tk.W)
         tk.Label(self.frame_settings, text="Начальная скорость V0").grid(row=1, column=0, sticky=tk.W)
         tk.Label(self.frame_settings, text="Угол alpha").grid(row=2, column=0, sticky=tk.W)
         tk.Label(self.frame_settings, text="Ускорение g").grid(row=3, column=0, sticky=tk.W)
@@ -27,11 +29,12 @@ class TabAngle(tk.Frame):
         self.ent_v0 = tk.Entry(self.frame_settings)
         self.ent_alpha = tk.Entry(self.frame_settings)
         self.ent_g = tk.Entry(self.frame_settings)
-        self.ent_y0.grid(row = 0, column = 1)
+        self.ent_y0.grid(row=0, column=1)
         self.ent_v0.grid(row=1, column=1)
         self.ent_alpha.grid(row=2, column=1)
         self.ent_g.grid(row=3, column=1)
-        tk.Button(self.frame_settings, text="Считать из файла", command=self.read_file).grid(row=5, column=0, columnspan=2)
+        tk.Button(self.frame_settings, text="Считать из файла", command=self.read_file).grid(row=5, column=0,
+                                                                                             columnspan=2)
         tk.Button(self.frame_settings, text="Расчитать!", command=self.calc).grid(row=6, column=0)
         tk.Button(self.frame_settings, text="Очистить поля", command=self.clear_entry).grid(row=6, column=1)
 
@@ -45,6 +48,10 @@ class TabAngle(tk.Frame):
         tk.Label(self.frame_result, text="Максимальная высота подъема").grid(row=5, column=0, sticky=tk.W)
         tk.Label(self.frame_result, text="Время полета").grid(row=6, column=0, sticky=tk.W)
         tk.Label(self.frame_result, text="Координата падения X").grid(row=7, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Конечная скорость по X").grid(row=8, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Конечная скорость по Y").grid(row=9, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Конечная скорость").grid(row=10, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Угол beta").grid(row=11, column=0, sticky=tk.W)
         self.lbl_y0 = tk.Label(self.frame_result, text="   -   ")
         self.lbl_v0 = tk.Label(self.frame_result, text="   -   ")
         self.lbl_alpha = tk.Label(self.frame_result, text="   -   ")
@@ -53,6 +60,10 @@ class TabAngle(tk.Frame):
         self.lbl_hmax = tk.Label(self.frame_result, text="   -   ")
         self.lbl_tpol = tk.Label(self.frame_result, text="   -   ")
         self.lbl_x = tk.Label(self.frame_result, text="   -   ")
+        self.lbl_vx = tk.Label(self.frame_result, text="-")
+        self.lbl_vy = tk.Label(self.frame_result, text="-")
+        self.lbl_vKon = tk.Label(self.frame_result, text="-")
+        self.lbl_beta = tk.Label(self.frame_result, text="-")
         self.lbl_y0.grid(row=0, column=1)
         self.lbl_v0.grid(row=1, column=1)
         self.lbl_alpha.grid(row=2, column=1)
@@ -61,21 +72,32 @@ class TabAngle(tk.Frame):
         self.lbl_hmax.grid(row=5, column=1)
         self.lbl_tpol.grid(row=6, column=1)
         self.lbl_x.grid(row=7, column=1)
-        tk.Button(self.frame_result, text="Сохранить результаты", command=self.save_file).grid(row=8, column=0, columnspan=2)
+        self.lbl_vx.grid(row=8, column=1)
+        self.lbl_vy.grid(row=9, column=1)
+        self.lbl_vKon.grid(row=10, column=1)
+        self.lbl_beta.grid(row=11, column=1)
+        tk.Button(self.frame_result, text="Сохранить результаты", command=self.save_file).grid(row=12, column=0,
+                                                                                               columnspan=2)
+        tk.Button(self.frame_result, text="Открыть документ-справку", command=self.save_file).grid(row=13, column=0,
+                                                                                                   columnspan=2)
+        tk.Button(self.frame_result, text="Открыть интернет-справку", command=self.open_web).grid(row=14, column=0,
+                                                                                                  columnspan=2)
 
         self.frame_canvas = tk.LabelFrame(self, text='График')
         self.frame_canvas.grid(row=0, column=1, rowspan=2)
-        self.figure = Figure(figsize=(5,5), dpi=100)
+        self.figure = Figure(figsize=(5, 5), dpi=100)
         self.plot = self.figure.add_subplot(111)
-        #self.plot.plot([0,2,3,4], [0, 'b', 7, 8])
+        # self.plot.plot([0,2,3,4], [0, 'b', 7, 8])
         self.canvas = FigureCanvasTkAgg(self.figure, self.frame_canvas)
         self.canvas.draw()
 
         self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-
-
         self.pack()
+
+    def open_web(self):
+        webbrowser.open_new(
+            "https://www.webmath.ru/poleznoe/fizika/fizika_94_telo_broshennoe_pod_uglom_k_gorizontu.php")
 
     def clear_entry(self):
         self.ent_v0.delete(0, tk.END)
@@ -114,7 +136,11 @@ class TabAngle(tk.Frame):
             'tpod': self.lbl_tpod['text'],
             'hmax': self.lbl_hmax['text'],
             'tpol': self.lbl_tpol['text'],
-            'L': self.lbl_x['text']
+            'L': self.lbl_x['text'],
+            'vKonx': self.lbl_vx['text'],
+            'vKony': self.lbl_vy['text'],
+            'vKon': self.lbl_vKon['text'],
+            'beta': self.lbl_beta['text']
         }
         with open(file_name + ".txt", 'w') as configfile:
             config.write(configfile)
@@ -131,12 +157,12 @@ class TabAngle(tk.Frame):
             return
         str_v0 = str(self.ent_v0.get())
         try:
-            v0 = abs(float(str_v0))
+            v0 = float(str_v0)
         except ValueError:
             messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле v0")
             return
-        if v0 == 0:
-            messagebox.showerror("ОШИБКА ВВОДА", "v0 не может быть равен нулю")
+        if v0 <= 0:
+            messagebox.showerror("ОШИБКА ВВОДА", "v0 должно быть больше 0")
             return
         str_alpha = str(self.ent_alpha.get())
         try:
@@ -149,14 +175,21 @@ class TabAngle(tk.Frame):
             return
         str_g = str(self.ent_g.get())
         try:
-            g = float(str_g)
+            g = abs(float(str_g))
+            if g == 0:
+                messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле g")
+                return
         except ValueError:
             messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле g")
             return
         tpod = (v0 * sin(alpha)) / g
-        hmax = y0 + ((v0 ** 2) * (sin(alpha)**2)) / (2 * g)
-        tpol = (v0 * sin(alpha) + (((v0 * sin(alpha))**2) + 2 * y0 * g)**0.5) / g
+        hmax = y0 + ((v0 ** 2) * (sin(alpha) ** 2)) / (2 * g)
+        tpol = (v0 * sin(alpha) + (((v0 * sin(alpha)) ** 2) + 2 * y0 * g) ** 0.5) / g
         x = v0 * cos(alpha) * tpol
+        vKon_x = v0
+        vKon_y = tpol * g
+        vKon = ((vKon_x ** 2) + (vKon_y ** 2)) ** 0.5
+        beta = degrees(atan(vKon_y / vKon_x))
         self.lbl_y0['text'] = str(y0)
         self.lbl_v0['text'] = str(v0)
         self.lbl_alpha['text'] = str(alpha)
@@ -165,8 +198,11 @@ class TabAngle(tk.Frame):
         self.lbl_hmax['text'] = str(hmax)
         self.lbl_tpol['text'] = str(tpol)
         self.lbl_x['text'] = str(x)
+        self.lbl_vx['text'] = str(vKon_x)
+        self.lbl_vy['text'] = str(vKon_y)
+        self.lbl_vKon['text'] = str(vKon)
+        self.lbl_beta['text'] = str(beta)
         delta_x = x / 100
-        print(delta_x * 100)
         ls_x = []
         for i in range(0, 99):
             ls_x.append(i * delta_x)

@@ -1,11 +1,13 @@
 # coding=UTF-8
 import tkinter as tk
 import configparser as cfg
-from math import atan
+import webbrowser
+from math import atan, degrees
 from tkinter import filedialog as fd
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from tkinter import messagebox
+
 
 class TabHorizontal(tk.Frame):
     def __init__(self, parent):
@@ -18,7 +20,7 @@ class TabHorizontal(tk.Frame):
     def init_ui(self):
         self.frame_settings = tk.LabelFrame(self, text='Настройки', height=250, width=250)
         self.frame_settings.grid(row=0, column=0)
-        tk.Label(self.frame_settings, text="Точка Y0").grid(row=0,column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Точка Y0").grid(row=0, column=0, sticky=tk.W)
         tk.Label(self.frame_settings, text="Начальная скорость V0").grid(row=1, column=0, sticky=tk.W)
         tk.Label(self.frame_settings, text="Время полета").grid(row=2, column=0, sticky=tk.W)
         tk.Label(self.frame_settings, text="Точка падения X").grid(row=3, column=0, sticky=tk.W)
@@ -29,12 +31,13 @@ class TabHorizontal(tk.Frame):
         self.ent_tpol = tk.Entry(self.frame_settings)
         self.ent_x = tk.Entry(self.frame_settings)
         self.ent_g = tk.Entry(self.frame_settings)
-        self.ent_y0.grid(row = 0, column = 1)
+        self.ent_y0.grid(row=0, column=1)
         self.ent_v0.grid(row=1, column=1)
         self.ent_tpol.grid(row=2, column=1)
         self.ent_x.grid(row=3, column=1)
         self.ent_g.grid(row=4, column=1)
-        tk.Button(self.frame_settings, text="Считать из файла", command=self.read_file).grid(row=6, column=0, columnspan=2)
+        tk.Button(self.frame_settings, text="Считать из файла", command=self.read_file).grid(row=6, column=0,
+                                                                                             columnspan=2)
         tk.Button(self.frame_settings, text="Расчитать!", command=self.calc).grid(row=7, column=0)
         tk.Button(self.frame_settings, text="Очистить поля", command=self.clear_entry).grid(row=7, column=1)
 
@@ -67,21 +70,28 @@ class TabHorizontal(tk.Frame):
         self.lbl_vy.grid(row=6, column=1)
         self.lbl_vKon.grid(row=7, column=1)
         self.lbl_beta.grid(row=8, column=1)
-        tk.Button(self.frame_result, text="Сохранить результаты", command=self.save_file).grid(row=9, column=0, columnspan=2)
+        tk.Button(self.frame_result, text="Сохранить результаты", command=self.save_file).grid(row=9, column=0,
+                                                                                               columnspan=2)
+        tk.Button(self.frame_result, text="Открыть документ-справку", command=self.save_file).grid(row=10, column=0,
+                                                                                                   columnspan=2)
+        tk.Button(self.frame_result, text="Открыть интернет-справку", command=self.open_web).grid(row=11, column=0,
+                                                                                                  columnspan=2)
 
         self.frame_canvas = tk.LabelFrame(self, text='График')
         self.frame_canvas.grid(row=0, column=1, rowspan=2)
-        self.figure = Figure(figsize=(5,5), dpi=100)
+        self.figure = Figure(figsize=(5, 5), dpi=100)
         self.plot = self.figure.add_subplot(111)
-        #self.plot.plot([0,2,3,4], [0, 'b', 7, 8])
+        # self.plot.plot([0,2,3,4], [0, 'b', 7, 8])
         self.canvas = FigureCanvasTkAgg(self.figure, self.frame_canvas)
         self.canvas.draw()
 
         self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-
-
         self.pack()
+
+    def open_web(self):
+        webbrowser.open_new(
+            "https://www.webmath.ru/poleznoe/fizika/fizika_103_dvizhenie_tela_broshennogo_gorizontalno.php")
 
     def clear_entry(self):
         self.ent_v0.delete(0, tk.END)
@@ -107,7 +117,6 @@ class TabHorizontal(tk.Frame):
             self.ent_x.insert(0, df['x'])
         if 'g' in df:
             self.ent_g.insert(0, df['g'])
-        print(file_name)
 
     def save_file(self):
         file_name = fd.asksaveasfilename(filetypes=[("Txt files", "*.txt")])
@@ -119,7 +128,7 @@ class TabHorizontal(tk.Frame):
             'g': self.lbl_g['text'],
             'L': self.lbl_x['text'],
             'tpol': self.lbl_tpol['text'],
-            'vx': self.lbl_vx ['text'],
+            'vx': self.lbl_vx['text'],
             'vy': self.lbl_vy['text'],
             'vkon': self.lbl_vKon['text'],
             'beta': self.lbl_beta['text'],
@@ -145,7 +154,7 @@ class TabHorizontal(tk.Frame):
         str_v0 = str(self.ent_v0.get())
         if str_v0 != "":
             try:
-                v0 = abs(float(str_v0))
+                v0 = float(str_v0)
             except ValueError:
                 messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле v0")
                 return
@@ -172,6 +181,9 @@ class TabHorizontal(tk.Frame):
         str_g = str(self.ent_g.get())
         try:
             g = abs(float(str_g))
+            if g == 0:
+                messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле g")
+                return
         except ValueError:
             messagebox.showerror("ОШИБКА ВВОДА", "Пожалуйста, введите число в поле g")
             return
@@ -181,29 +193,31 @@ class TabHorizontal(tk.Frame):
             return
 
         if 'y0' in defined and 'v0' in defined:
-            tpol = ((2 * y0) / g)**0.5
+            tpol = ((2 * y0) / g) ** 0.5
             x = tpol * v0
         elif 'y0' in defined and 'x' in defined:
-            tpol = ((2 * y0) / g)**0.5
+            tpol = ((2 * y0) / g) ** 0.5
             v0 = x / tpol
+        elif 'y0' in defined and 'tpol' in defined:
+            if 'x' in defined:
+                v0 = x / tpol
+            else:
+                messagebox.showerror("ОШИБКА РАСЧЕТА", "Недостаточно данных для вычислений")
+                return
         elif 'v0' in defined and 'tpol' in defined:
             x = v0 * tpol
-            y0 = (g * (tpol**2)) / 2
+            y0 = (g * (tpol ** 2)) / 2
         elif 'v0' in defined and 'x' in defined:
             tpol = x / v0
-            y0 = (g * (tpol**2)) / 2
+            y0 = (g * (tpol ** 2)) / 2
         elif 'tpol' in defined and 'x' in defined:
             v0 = x / tpol
-            y0 = (g * (tpol**2)) / 2
-        elif 'y0' in defined and 'tpol' in defined:
-            messagebox.showerror("ОШИБКА РАСЧЕТА", "Недостаточно данных для вычислений")
-            return
-
+            y0 = (g * (tpol ** 2)) / 2
 
         vKon_x = v0
         vKon_y = tpol * g
-        vKon = ((vKon_x**2) + (vKon_y**2))**0.5
-        beta = atan(vKon_y / vKon_x)
+        vKon = ((vKon_x ** 2) + (vKon_y ** 2)) ** 0.5
+        beta = degrees(atan(vKon_y / vKon_x))
         self.lbl_y0['text'] = str(y0)
         self.lbl_v0['text'] = str(v0)
         self.lbl_g['text'] = str(g)
@@ -220,7 +234,7 @@ class TabHorizontal(tk.Frame):
         ls_x.append(x)
         ls_y = []
         for i in range(0, 99):
-            ls_y.append(y0 - (g * (ls_x[i]**2)) / (2 * (v0**2)))
+            ls_y.append(y0 - (g * (ls_x[i] ** 2)) / (2 * (v0 ** 2)))
         ls_y.append(0)
         self.plot.clear()
         self.plot.plot(ls_x, ls_y)
