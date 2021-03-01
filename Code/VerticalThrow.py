@@ -19,12 +19,12 @@ class TabVertical(tk.Frame):
     def init_ui(self):
         self.frame_settings = tk.LabelFrame(self, text='Настройки', height=250, width=250)
         self.frame_settings.grid(row=0, column=0)
-        tk.Label(self.frame_settings, text="Точка X0").grid(row=0, column=0, sticky=tk.W)
-        tk.Label(self.frame_settings, text="Начальная скорость V0").grid(row=1, column=0, sticky=tk.W)
-        tk.Label(self.frame_settings, text="Время подъема").grid(row=2, column=0, sticky=tk.W)
-        tk.Label(self.frame_settings, text="Время полета").grid(row=3, column=0, sticky=tk.W)
-        tk.Label(self.frame_settings, text="Максимальная высота подъема").grid(row=4, column=0, sticky=tk.W)
-        tk.Label(self.frame_settings, text="Ускорение g").grid(row=5, column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Точка X0(м)").grid(row=0, column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Начальная скорость V0(м/c)").grid(row=1, column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Время подъема(c)").grid(row=2, column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Время полета(c)").grid(row=3, column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Максимальная высота подъема(м)").grid(row=4, column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Ускорение g(м/с^2)").grid(row=5, column=0, sticky=tk.W)
         tk.Label(self.frame_settings, text="Желтая точка на графике - x0").grid(row=6, column=0, columnspan=2)
         self.ent_x0 = tk.Entry(self.frame_settings)
         self.ent_v0 = tk.Entry(self.frame_settings)
@@ -45,13 +45,13 @@ class TabVertical(tk.Frame):
 
         self.frame_result = tk.LabelFrame(self, text='Расчет', height=250, width=250)
         self.frame_result.grid(row=1, column=0)
-        tk.Label(self.frame_result, text="Точка X0").grid(row=0, column=0, sticky=tk.W)
-        tk.Label(self.frame_result, text="Начальная скорость V0").grid(row=1, column=0, sticky=tk.W)
-        tk.Label(self.frame_result, text="Ускорение g").grid(row=2, column=0, sticky=tk.W)
-        tk.Label(self.frame_result, text="Время подъема").grid(row=3, column=0, sticky=tk.W)
-        tk.Label(self.frame_result, text="Время полета").grid(row=4, column=0, sticky=tk.W)
-        tk.Label(self.frame_result, text="Максимальная высота подъема").grid(row=5, column=0, sticky=tk.W)
-        tk.Label(self.frame_result, text="Конечная скорость").grid(row=6, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Точка X0(м)").grid(row=0, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Начальная скорость V0(м/с)").grid(row=1, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Ускорение g(м/с^2)").grid(row=2, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Время подъема(с)").grid(row=3, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Время полета(с)").grid(row=4, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Максимальная высота подъема(м)").grid(row=5, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Конечная скорость(м/с)").grid(row=6, column=0, sticky=tk.W)
         self.lbl_x0 = tk.Label(self.frame_result, text="-")
         self.lbl_v0 = tk.Label(self.frame_result, text="-")
         self.lbl_g = tk.Label(self.frame_result, text="-")
@@ -68,7 +68,7 @@ class TabVertical(tk.Frame):
         self.lbl_vk.grid(row=6, column=1)
         tk.Button(self.frame_result, text="Сохранить результаты", command=self.save_file).grid(row=7, column=0,
                                                                                                columnspan=2)
-        tk.Button(self.frame_result, text="Открыть документ-справку", command=self.save_file).grid(row=8, column=0,
+        tk.Button(self.frame_result, text="Открыть документ-справку", command=self.open_help).grid(row=8, column=0,
                                                                                                    columnspan=2)
         tk.Button(self.frame_result, text="Открыть интернет-справку", command=self.open_web).grid(row=9, column=0,
                                                                                                   columnspan=2)
@@ -84,6 +84,9 @@ class TabVertical(tk.Frame):
         self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         self.pack()
+
+    def open_help(self):
+        webbrowser.open("Движение тела, брошенного вертикально вверх.pdf")
 
     def open_web(self):
         webbrowser.open_new("https://lampa.io/p/%D0%B4%D0%B2%D0%B8%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5-%D1%82%D0%B5%D0%BB"
@@ -306,13 +309,13 @@ class TabVertical(tk.Frame):
             messagebox.showerror("ОШИБКА РАСЧЕТА", "Недостаточно данных для расчета")
             return
 
-        self.lbl_x0['text'] = str(x0)
-        self.lbl_v0['text'] = str(v0)
-        self.lbl_g['text'] = str(g)
-        self.lbl_tpol['text'] = str(tpol)
-        self.lbl_hmax['text'] = str(hmax)
-        self.lbl_tpod['text'] = str(tpod)
-        self.lbl_vk['text'] = str(v0 - g * tpol)
+        self.lbl_x0['text'] = str(round(x0, 4))
+        self.lbl_v0['text'] = str(round(v0, 4))
+        self.lbl_g['text'] = str(round(g, 4))
+        self.lbl_tpol['text'] = str(round(tpol, 4))
+        self.lbl_hmax['text'] = str(round(hmax, 4))
+        self.lbl_tpod['text'] = str(round(tpod, 4))
+        self.lbl_vk['text'] = str(round(v0 - g * tpol, 4))
         self.plot.clear()
         self.plot.plot([0, 0], [0, hmax])
         self.plot.scatter(0, x0, color='orange', s=40, marker='o')

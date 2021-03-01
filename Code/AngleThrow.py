@@ -20,10 +20,10 @@ class TabAngle(tk.Frame):
     def init_ui(self):
         self.frame_settings = tk.LabelFrame(self, text='Настройки', height=250, width=250)
         self.frame_settings.grid(row=0, column=0)
-        tk.Label(self.frame_settings, text="Точка Y0").grid(row=0, column=0, sticky=tk.W)
-        tk.Label(self.frame_settings, text="Начальная скорость V0").grid(row=1, column=0, sticky=tk.W)
-        tk.Label(self.frame_settings, text="Угол alpha").grid(row=2, column=0, sticky=tk.W)
-        tk.Label(self.frame_settings, text="Ускорение g").grid(row=3, column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Точка Y0(м)").grid(row=0, column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Начальная скорость V0(м/с)").grid(row=1, column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Угол alpha(градусы)").grid(row=2, column=0, sticky=tk.W)
+        tk.Label(self.frame_settings, text="Ускорение g(м/с^2)").grid(row=3, column=0, sticky=tk.W)
         tk.Label(self.frame_settings, text="Желтая точка на графике - Y0").grid(row=4, column=0, columnspan=2)
         self.ent_y0 = tk.Entry(self.frame_settings)
         self.ent_v0 = tk.Entry(self.frame_settings)
@@ -40,18 +40,18 @@ class TabAngle(tk.Frame):
 
         self.frame_result = tk.LabelFrame(self, text='Расчет', height=250, width=250)
         self.frame_result.grid(row=1, column=0)
-        tk.Label(self.frame_result, text="Точка Y0").grid(row=0, column=0, sticky=tk.W)
-        tk.Label(self.frame_result, text="Начальная скорость V0").grid(row=1, column=0, sticky=tk.W)
-        tk.Label(self.frame_result, text="Угол alpha").grid(row=2, column=0, sticky=tk.W)
-        tk.Label(self.frame_result, text="Ускорение g").grid(row=3, column=0, sticky=tk.W)
-        tk.Label(self.frame_result, text="Время подъема").grid(row=4, column=0, sticky=tk.W)
-        tk.Label(self.frame_result, text="Максимальная высота подъема").grid(row=5, column=0, sticky=tk.W)
-        tk.Label(self.frame_result, text="Время полета").grid(row=6, column=0, sticky=tk.W)
-        tk.Label(self.frame_result, text="Координата падения X").grid(row=7, column=0, sticky=tk.W)
-        tk.Label(self.frame_result, text="Конечная скорость по X").grid(row=8, column=0, sticky=tk.W)
-        tk.Label(self.frame_result, text="Конечная скорость по Y").grid(row=9, column=0, sticky=tk.W)
-        tk.Label(self.frame_result, text="Конечная скорость").grid(row=10, column=0, sticky=tk.W)
-        tk.Label(self.frame_result, text="Угол beta").grid(row=11, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Точка Y0(м)").grid(row=0, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Начальная скорость V0(м/с)").grid(row=1, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Угол alpha(градусы)").grid(row=2, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Ускорение g(м/с^2)").grid(row=3, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Время подъема(с)").grid(row=4, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Максимальная высота подъема(м)").grid(row=5, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Время полета(с)").grid(row=6, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Координата падения X(м)").grid(row=7, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Конечная скорость по X(м/с)").grid(row=8, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Конечная скорость по Y(м/с)").grid(row=9, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Конечная скорость(м/с)").grid(row=10, column=0, sticky=tk.W)
+        tk.Label(self.frame_result, text="Угол beta(градусы)").grid(row=11, column=0, sticky=tk.W)
         self.lbl_y0 = tk.Label(self.frame_result, text="   -   ")
         self.lbl_v0 = tk.Label(self.frame_result, text="   -   ")
         self.lbl_alpha = tk.Label(self.frame_result, text="   -   ")
@@ -78,7 +78,7 @@ class TabAngle(tk.Frame):
         self.lbl_beta.grid(row=11, column=1)
         tk.Button(self.frame_result, text="Сохранить результаты", command=self.save_file).grid(row=12, column=0,
                                                                                                columnspan=2)
-        tk.Button(self.frame_result, text="Открыть документ-справку", command=self.save_file).grid(row=13, column=0,
+        tk.Button(self.frame_result, text="Открыть документ-справку", command=self.open_help).grid(row=13, column=0,
                                                                                                    columnspan=2)
         tk.Button(self.frame_result, text="Открыть интернет-справку", command=self.open_web).grid(row=14, column=0,
                                                                                                   columnspan=2)
@@ -94,6 +94,9 @@ class TabAngle(tk.Frame):
         self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         self.pack()
+
+    def open_help(self):
+        webbrowser.open("Движение тела, брошенного под углом к горизонту.pdf")
 
     def open_web(self):
         webbrowser.open_new(
@@ -186,22 +189,22 @@ class TabAngle(tk.Frame):
         hmax = y0 + ((v0 ** 2) * (sin(alpha) ** 2)) / (2 * g)
         tpol = (v0 * sin(alpha) + (((v0 * sin(alpha)) ** 2) + 2 * y0 * g) ** 0.5) / g
         x = v0 * cos(alpha) * tpol
-        vKon_x = v0
-        vKon_y = tpol * g
+        vKon_x = v0 * cos(alpha)
+        vKon_y = v0 * sin(alpha) - tpol * g
         vKon = ((vKon_x ** 2) + (vKon_y ** 2)) ** 0.5
         beta = degrees(atan(vKon_y / vKon_x))
-        self.lbl_y0['text'] = str(y0)
-        self.lbl_v0['text'] = str(v0)
-        self.lbl_alpha['text'] = str(alpha)
-        self.lbl_g['text'] = str(g)
-        self.lbl_tpod['text'] = str(tpod)
-        self.lbl_hmax['text'] = str(hmax)
-        self.lbl_tpol['text'] = str(tpol)
-        self.lbl_x['text'] = str(x)
-        self.lbl_vx['text'] = str(vKon_x)
-        self.lbl_vy['text'] = str(vKon_y)
-        self.lbl_vKon['text'] = str(vKon)
-        self.lbl_beta['text'] = str(beta)
+        self.lbl_y0['text'] = str(round(y0, 4))
+        self.lbl_v0['text'] = str(round(v0, 4))
+        self.lbl_alpha['text'] = str(round(degrees(alpha), 4))
+        self.lbl_g['text'] = str(round(g, 4))
+        self.lbl_tpod['text'] = str(round(tpod, 4))
+        self.lbl_hmax['text'] = str(round(hmax, 4))
+        self.lbl_tpol['text'] = str(round(tpol, 4))
+        self.lbl_x['text'] = str(round(x, 4))
+        self.lbl_vx['text'] = str(round(vKon_x, 4))
+        self.lbl_vy['text'] = str(round(vKon_y, 4))
+        self.lbl_vKon['text'] = str(round(vKon, 4))
+        self.lbl_beta['text'] = str(round(beta, 4))
         delta_x = x / 100
         ls_x = []
         for i in range(0, 99):
